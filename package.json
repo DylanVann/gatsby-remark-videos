@@ -1,44 +1,39 @@
 {
-  "name": "gatsby-remark-videos",
+  "name": "@dylanvann/gatsby-remark-videos",
+  "version": "0.0.7",
   "description": "Processes videos in markdown so they can be used in the production build.",
-  "version": "0.3.5",
-  "author": "Michael Orenstein <mike@whiteshadows.me>",
+  "keywords": [
+    "gatsby",
+    "gatsby-plugin",
+    "image",
+    "markdown",
+    "remark",
+    "responsive images"
+  ],
+  "homepage": "https://github.com/Mike-Dax/gatsby-remark-videos",
   "bugs": {
     "url": "https://github.com/Mike-Dax/gatsby-remark-videos/issues"
   },
+  "repository": "https://github.com/Mike-Dax/gatsby-remark-videos",
+  "license": "MIT",
+  "author": "Michael Orenstein <mike@whiteshadows.me>",
+  "files": [
+    "index.js",
+    "src"
+  ],
   "dependencies": {
-    "@babel/runtime": "7.5.5",
-    "bluebird": "^3.5.5",
-    "gatsby-plugin-ffmpeg": "^0.3.1",
-    "is-relative-url": "^3.0.0",
+    "@babel/runtime": "7.10.2",
+    "@dylanvann/gatsby-plugin-ffmpeg": "^0.0.9",
+    "is-relative-url": "^2.0.0",
     "lodash": "^4.17.15",
     "slash": "^3.0.0",
     "unist-util-select": "^1.5.0"
   },
   "devDependencies": {
-    "@babel/cli": "7.5.5",
-    "@babel/core": "7.5.5",
-    "cross-env": "^5.2.0"
+    "@babel/cli": "7.10.1",
+    "@babel/core": "7.10.2"
   },
-  "homepage": "https://github.com/Mike-Dax/gatsby-remark-videos",
-  "keywords": [
-    "gatsby",
-    "gatsby-plugin",
-    "video",
-    "markdown",
-    "remark",
-    "ffmpeg"
-  ],
-  "license": "MIT",
-  "main": "./lib/index.js",
   "peerDependencies": {
     "gatsby": ">2.0.0"
-  },
-  "repository": "https://github.com/Mike-Dax/gatsby-remark-videos",
-  "scripts": {
-    "build": "babel src --out-dir lib",
-    "prepare": "cross-env NODE_ENV=production npm run build",
-    "watch": "babel -w src --out-dir lib",
-    "prepublish": "npm run build"
   }
 }
