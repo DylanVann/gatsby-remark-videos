@@ -1,6 +1,6 @@
 {
   "name": "@dylanvann/gatsby-remark-videos",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Processes videos in markdown so they can be used in the production build.",
   "keywords": [
     "gatsby",
@@ -19,14 +19,8 @@
   "author": "Michael Orenstein <mike@whiteshadows.me>",
   "files": [
     "index.js",
-    "lib"
+    "src"
   ],
-  "scripts": {
-    "build": "babel src --out-dir lib",
-    "prepare": "cross-env NODE_ENV=production npm run build",
-    "prepublish": "npm run build",
-    "watch": "babel -w src --out-dir lib"
-  },
   "dependencies": {
     "@babel/runtime": "7.4.2",
     "bluebird": "^3.5.3",
