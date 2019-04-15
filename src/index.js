@@ -82,34 +82,22 @@ module.exports = (
       return `<source src="${video.src}" type="video/${video.fileExtension}">`
     })
 
-    console.log(
-      transcodeResult.presentationMaxWidth,
-      transcodeResult.presentationMaxHeight,
-    )
-
     let wrapperAspectStyle
     let videoAspectStyle
 
-    if (transcodeResult.aspectRatio < 1) {
-      wrapperAspectStyle = `max-width: ${
-        transcodeResult.presentationMaxWidth
-      }px; max-height: ${
-        transcodeResult.presentationMaxHeight
-      }px; margin-left: auto; margin-right: auto;`
-      videoAspectStyle = `height: 100%; width: 100%; margin: 0 auto; display: block; max-height: ${
-        transcodeResult.presentationMaxHeight
-      }px;`
+    const { width, height, aspectRatio } = transcodeResult
+    if (aspectRatio < 1) {
+        wrapperAspectStyle = `max-width: ${width}px; max-height: ${height}px; margin-left: auto; margin-right: auto;`
+        videoAspectStyle = `height: 100%; width: 100%; margin: 0 auto; display: block; max-height: ${height}px;`
     } else {
-      // we're landscape, use the video aspect ratio to create a
-
-      const ratio = `${(1 / transcodeResult.aspectRatio) * 100}%`
-
-      wrapperAspectStyle = `position: relative; display: block; padding-top: ${ratio};`
-      videoAspectStyle = `position: absolute; top: 0; left: 0; width: 100%; height: auto;`
+        // we're landscape, use the video aspect ratio to create a
+        const ratio = `${(1 / aspectRatio) * 100}%`
+        wrapperAspectStyle = `position: relative; display: block; padding-top: ${ratio};`
+        videoAspectStyle = `position: absolute; top: 0; left: 0; width: 100%; height: auto;`
     }
 
     const videoTag = `
-    <video autoplay loop preload style="${videoAspectStyle}" >
+    <video autoplay loop muted preload style="${videoAspectStyle}" >
       ${sourceTags.join('')}
     </video>
     `
