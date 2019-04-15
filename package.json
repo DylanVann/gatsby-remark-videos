@@ -1,6 +1,6 @@
 {
-  "name": "gatsby-remark-videos",
-  "version": "0.3.0",
+  "name": "@dylanvann/gatsby-remark-videos",
+  "version": "0.0.1",
   "description": "Processes videos in markdown so they can be used in the production build.",
   "keywords": [
     "gatsby",
