@@ -6,15 +6,15 @@ const slash = require(`slash`)
 const { transcode } = require(`@dylanvann/gatsby-plugin-ffmpeg`)
 const allowedFiletypes = ['avi', 'mp4', 'mov', 'mkv']
 
-module.exports = (
-  { files, markdownNode, markdownAST, pathPrefix, getNode, reporter },
+module.exports = async (
+  { files, markdownNode, markdownAST, getNode, reporter },
   pluginOptions
 ) => {
   const defaults = {
     pipelines: [
       {
         name: 'vp9',
-        transcode: chain =>
+        transcode: (chain) =>
           chain
             .videoCodec('libvpx-vp9')
             .noAudio()
@@ -25,7 +25,7 @@ module.exports = (
       },
       {
         name: 'h264',
-        transcode: chain => chain.videoCodec('libx264').noAudio(),
+        transcode: (chain) => chain.videoCodec('libx264').noAudio(),
         maxHeight: 480,
         maxWidth: 900,
         fileExtension: 'mp4',
@@ -36,11 +36,12 @@ module.exports = (
   const options = _.defaults(pluginOptions, defaults)
 
   // This will only work for markdown syntax image tags
+  console.log(markdownAST)
   const markdownVideoNodes = select(markdownAST, `image`)
 
   // Takes a node and generates the needed videos and then returns
   // the needed HTML replacement for the video
-  const generateVideosAndUpdateNode = async function(node, resolve) {
+  const generateVideosAndUpdateNode = async function (node) {
     // Check if this markdownNode has a File parent. This plugin
     // won't work if the video isn't hosted locally.
     const parentNode = getNode(markdownNode.parent)
@@ -51,7 +52,7 @@ module.exports = (
       return null
     }
 
-    const videoNode = _.find(files, file => {
+    const videoNode = _.find(files, (file) => {
       if (file && file.absolutePath) {
         return file.absolutePath === videoPath
       }
@@ -59,7 +60,7 @@ module.exports = (
     })
 
     if (!videoNode || !videoNode.absolutePath) {
-      return resolve()
+      return undefined
     }
 
     let transcodeResult = await transcode({
@@ -70,13 +71,13 @@ module.exports = (
 
     // Calculate the paddingBottom %
 
-    const sourceTags = transcodeResult.videos.map(video => {
+    const sourceTags = transcodeResult.videos.map((video) => {
       return `<source src="${video.src}" type="video/${video.fileExtension}">`
     })
     let wrapperAspectStyle
     let videoAspectStyle
 
-    const { width, height, aspectRatio } = transcodeResult
+    const { width, height } = transcodeResult
     wrapperAspectStyle = `max-width: ${width}px; max-height: ${height}px; margin-left: auto; margin-right: auto;`
     videoAspectStyle = `height: 100%; width: 100%; margin: 0 auto; display: block; max-height: ${height}px;`
 
@@ -93,30 +94,28 @@ module.exports = (
       >${videoTag}</div>
     `
 
-    return rawHTML
+    return rawHTML.trim()
   }
 
-  return Promise.all(
-    // Simple because there is no nesting in markdown
-    markdownVideoNodes.map(
-      node =>
-        new Promise(async (resolve, reject) => {
-          const fileType = node.url.split('.').pop()
+  // Simple because there is no nesting in markdown.
+  const promises = markdownVideoNodes.map(async (node) => {
+    const fileType = node.url.split('.').pop()
 
-          if (isRelativeUrl(node.url) && allowedFiletypes.includes(fileType)) {
-            const rawHTML = await generateVideosAndUpdateNode(node, resolve)
+    if (isRelativeUrl(node.url) && allowedFiletypes.includes(fileType)) {
+      const rawHTML = await generateVideosAndUpdateNode(node)
 
-            if (rawHTML) {
-              // Replace the video node with an inline HTML node.
-              node.type = `html`
-              node.value = rawHTML
-            }
-            return resolve(node)
-          } else {
-            // Video isn't relative so there's nothing for us to do.
-            return resolve()
-          }
-        })
-    )
-  ).then(markdownVideoNodes => markdownVideoNodes.filter(node => !!node))
+      if (rawHTML) {
+        // Replace the video node with an inline HTML node.
+        node.type = `html`
+        node.value = rawHTML
+      }
+      console.log(node)
+      return node
+    } else {
+      // Video isn't relative so there's nothing for us to do.
+      return undefined
+    }
+  })
+
+  await Promise.all(promises)
 }
