@@ -36,7 +36,6 @@ module.exports = async (
   const options = _.defaults(pluginOptions, defaults)
 
   // This will only work for markdown syntax image tags
-  console.log(markdownAST)
   const markdownVideoNodes = select(markdownAST, `image`)
 
   // Takes a node and generates the needed videos and then returns
@@ -81,20 +80,13 @@ module.exports = async (
     wrapperAspectStyle = `max-width: ${width}px; max-height: ${height}px; margin-left: auto; margin-right: auto;`
     videoAspectStyle = `height: 100%; width: 100%; margin: 0 auto; display: block; max-height: ${height}px;`
 
-    const videoTag = `
-    <video autoplay loop muted preload playsinline style="${videoAspectStyle}" >
-      ${sourceTags.join('')}
-    </video>
-    `
+    const videoTag = `<video autoplay loop muted preload playsinline style="${videoAspectStyle}">${sourceTags.join(
+      ''
+    )}</video>`
 
-    let rawHTML = `
-      <div
-      class="gatsby-video-aspect-ratio"
-      style="${wrapperAspectStyle}"
-      >${videoTag}</div>
-    `
+    let rawHTML = `<div class="gatsby-video-aspect-ratio" style="${wrapperAspectStyle}">${videoTag}</div>`
 
-    return rawHTML.trim()
+    return rawHTML.trim().replace(/\n/gm, '')
   }
 
   // Simple because there is no nesting in markdown.
@@ -109,7 +101,6 @@ module.exports = async (
         node.type = `html`
         node.value = rawHTML
       }
-      console.log(node)
       return node
     } else {
       // Video isn't relative so there's nothing for us to do.
