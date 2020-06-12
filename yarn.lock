@@ -210,10 +210,10 @@
     http-response-object "^3.0.1"
     parse-cache-control "^1.0.1"
 
-"@dylanvann/gatsby-plugin-ffmpeg@^0.0.9":
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/@dylanvann/gatsby-plugin-ffmpeg/-/gatsby-plugin-ffmpeg-0.0.9.tgz#474dbb0192536892927ba3f619cfd54e7f7fabc8"
-  integrity sha512-P26zTQL4Ts2Kbz+Sf01M0GhboG+T8PLNK95hvy3Ioesyq1IpKbh3jxHPFx6AwX2F22QiDaHlCURn1+yNe1eTxA==
+"@dylanvann/gatsby-plugin-ffmpeg@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@dylanvann/gatsby-plugin-ffmpeg/-/gatsby-plugin-ffmpeg-1.0.0.tgz#94e58430558c19129eef4200df50240bbd6ee410"
+  integrity sha512-YcqhOzMdTbs6iVhv3MpVu+1DKkrv27iYi85r7PBgASWgJeBnLnV7dfe+zLszFf9Z0NL2g2qCabfYyFQIdwi/7Q==
   dependencies:
     async "^2.6.2"
     ffmpeg-static "^4.2.2"
