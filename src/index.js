@@ -73,18 +73,16 @@ module.exports = async (
     const sourceTags = transcodeResult.videos.map((video) => {
       return `<source src="${video.src}" type="video/${video.fileExtension}">`
     })
-    let wrapperAspectStyle
-    let videoAspectStyle
 
     const { width, height } = transcodeResult
-    wrapperAspectStyle = `max-width: ${width}px; max-height: ${height}px; margin-left: auto; margin-right: auto;`
-    videoAspectStyle = `height: 100%; width: 100%; margin: 0 auto; display: block; max-height: ${height}px;`
+    const wrapperAspectStyle = `max-width: ${width}px; max-height: ${height}px; margin-left: auto; margin-right: auto;`
+    const videoAspectStyle = `height: 100%; width: 100%; margin: 0 auto; display: block; max-height: ${height}px;`
 
     const videoTag = `<video autoplay loop muted preload playsinline style="${videoAspectStyle}">${sourceTags.join(
       ''
     )}</video>`
 
-    let rawHTML = `<div class="gatsby-video-aspect-ratio" style="${wrapperAspectStyle}">${videoTag}</div>`
+    const rawHTML = `<span class="gatsby-video gatsby-video-aspect-ratio" style="${wrapperAspectStyle}">${videoTag}</span>`
 
     return rawHTML.trim().replace(/\n/gm, '')
   }
@@ -95,17 +93,13 @@ module.exports = async (
 
     if (isRelativeUrl(node.url) && allowedFiletypes.includes(fileType)) {
       const rawHTML = await generateVideosAndUpdateNode(node)
-
       if (rawHTML) {
         // Replace the video node with an inline HTML node.
         node.type = `html`
         node.value = rawHTML
       }
-      return node
-    } else {
-      // Video isn't relative so there's nothing for us to do.
-      return undefined
     }
+    // Video isn't relative so there's nothing for us to do.
   })
 
   await Promise.all(promises)
