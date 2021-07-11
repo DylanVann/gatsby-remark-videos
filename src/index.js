@@ -2,23 +2,19 @@ const select = require(`unist-util-select`)
 const path = require(`path`)
 const isRelativeUrl = require(`is-relative-url`)
 const _ = require(`lodash`)
-
-const Promise = require(`bluebird`)
 const slash = require(`slash`)
-
-const { transcode } = require(`gatsby-plugin-ffmpeg`)
-
+const { transcode } = require(`@dylanvann/gatsby-plugin-ffmpeg`)
 const allowedFiletypes = ['avi', 'mp4', 'mov', 'mkv']
 
-module.exports = (
-  { files, markdownNode, markdownAST, pathPrefix, getNode, reporter },
+module.exports = async (
+  { files, markdownNode, markdownAST, getNode, reporter },
   pluginOptions
 ) => {
   const defaults = {
     pipelines: [
       {
         name: 'vp9',
-        transcode: chain =>
+        transcode: (chain) =>
           chain
             .videoCodec('libvpx-vp9')
             .noAudio()
@@ -29,7 +25,7 @@ module.exports = (
       },
       {
         name: 'h264',
-        transcode: chain => chain.videoCodec('libx264').noAudio(),
+        transcode: (chain) => chain.videoCodec('libx264').noAudio(),
         maxHeight: 480,
         maxWidth: 900,
         fileExtension: 'mp4',
@@ -44,7 +40,7 @@ module.exports = (
 
   // Takes a node and generates the needed videos and then returns
   // the needed HTML replacement for the video
-  const generateVideosAndUpdateNode = async function(node, resolve) {
+  const generateVideosAndUpdateNode = async function (node) {
     // Check if this markdownNode has a File parent. This plugin
     // won't work if the video isn't hosted locally.
     const parentNode = getNode(markdownNode.parent)
@@ -55,7 +51,7 @@ module.exports = (
       return null
     }
 
-    const videoNode = _.find(files, file => {
+    const videoNode = _.find(files, (file) => {
       if (file && file.absolutePath) {
         return file.absolutePath === videoPath
       }
@@ -63,7 +59,7 @@ module.exports = (
     })
 
     if (!videoNode || !videoNode.absolutePath) {
-      return resolve()
+      return undefined
     }
 
     let transcodeResult = await transcode({
@@ -74,73 +70,37 @@ module.exports = (
 
     // Calculate the paddingBottom %
 
-    const sourceTags = transcodeResult.videos.map(video => {
+    const sourceTags = transcodeResult.videos.map((video) => {
       return `<source src="${video.src}" type="video/${video.fileExtension}">`
     })
-    /*
-    console.log(
-      transcodeResult.presentationMaxWidth,
-      transcodeResult.presentationMaxHeight
-    );
-    */
-    let wrapperAspectStyle
-    let videoAspectStyle
 
-    if (transcodeResult.aspectRatio < 1) {
-      wrapperAspectStyle = `max-width: ${
-        transcodeResult.presentationMaxWidth
-      }px; max-height: ${
-        transcodeResult.presentationMaxHeight
-      }px; margin-left: auto; margin-right: auto;`
-      videoAspectStyle = `height: 100%; width: 100%; margin: 0 auto; display: block; max-height: ${
-        transcodeResult.presentationMaxHeight
-      }px;`
-    } else {
-      // we're landscape, use the video aspect ratio to create a
+    const { width, height } = transcodeResult
+    const wrapperAspectStyle = `max-width: ${width}px; max-height: ${height}px; margin-left: auto; margin-right: auto;`
+    const videoAspectStyle = `height: 100%; width: 100%; margin: 0 auto; display: block; max-height: ${height}px;`
 
-      const ratio = `${(1 / transcodeResult.aspectRatio) * 100}%`
+    const videoTag = `<video autoplay loop muted preload playsinline style="${videoAspectStyle}">${sourceTags.join(
+      ''
+    )}</video>`
 
-      wrapperAspectStyle = `position: relative; display: block; padding-top: ${ratio};`
-      videoAspectStyle = `position: absolute; top: 0; left: 0; width: 100%; height: auto;`
-    }
+    const rawHTML = `<span class="gatsby-video gatsby-video-aspect-ratio" style="${wrapperAspectStyle}">${videoTag}</span>`
 
-    const videoTag = `
-    <video autoplay loop preload style="${videoAspectStyle}" >
-      ${sourceTags.join('')}
-    </video>
-    `
-
-    let rawHTML = `
-      <div
-      class="gatsby-video-aspect-ratio"
-      style="${wrapperAspectStyle}"
-      >${videoTag}</div>
-    `
-
-    return rawHTML
+    return rawHTML.trim().replace(/\n/gm, '')
   }
 
-  return Promise.all(
-    // Simple because there is no nesting in markdown
-    markdownVideoNodes.map(
-      node =>
-        new Promise(async (resolve, reject) => {
-          const fileType = node.url.split('.').pop()
+  // Simple because there is no nesting in markdown.
+  const promises = markdownVideoNodes.map(async (node) => {
+    const fileType = node.url.split('.').pop()
 
-          if (isRelativeUrl(node.url) && allowedFiletypes.includes(fileType)) {
-            const rawHTML = await generateVideosAndUpdateNode(node, resolve)
+    if (isRelativeUrl(node.url) && allowedFiletypes.includes(fileType)) {
+      const rawHTML = await generateVideosAndUpdateNode(node)
+      if (rawHTML) {
+        // Replace the video node with an inline HTML node.
+        node.type = `html`
+        node.value = rawHTML
+      }
+    }
+    // Video isn't relative so there's nothing for us to do.
+  })
 
-            if (rawHTML) {
-              // Replace the video node with an inline HTML node.
-              node.type = `html`
-              node.value = rawHTML
-            }
-            return resolve(node)
-          } else {
-            // Video isn't relative so there's nothing for us to do.
-            return resolve()
-          }
-        })
-    )
-  ).then(markdownVideoNodes => markdownVideoNodes.filter(node => !!node))
+  await Promise.all(promises)
 }
